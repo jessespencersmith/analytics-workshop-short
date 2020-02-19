@@ -1,50 +1,63 @@
-# repo-template-r
-This is a template repository for data science projects done in R.
+# ehr-analytics-workshop
+Analytics Intensive Workshop in R using EHR (redcap) data.
 
-# Quick navigation
-[Background](#background)  
-[Data](#data)  
-[Models](#models)  
-[Timeline](#timeline)  
-[Logistics](#project-logistics)  
+This workshop assumes a no familiarity with programming, but some experience or need of analytical tools. If you have experience with programming in Python, or in base R, this workshop will still be worthwhile.
 
-# Background  
+We'll cover the basics necessary for a reproducible and efficient analytics workflow. By the end of workshop, you'll have been introduced to functional programming, best practices for creatiing reproducible and understandable analytics.
 
-Provide a broad overview of the purpose of the project.
+## Workshop Outline
 
-# Data
+9 - 9:15
+- Introductions, Discussion, and Example
 
-Describe the data - what kind of data is it?  Describe the general format, and potential quirks.
+9:15 - 9:45
+- Discussion: Analytics Use Case
+- Touring RStudio
+- Writing Notebooks
 
-## Data security
+10:00 - 12:00
+- Validating Data
+- Exploring Data
+- Building Cohorts
 
-If there are any security concerns or requirements regarding the data, they should be described here.
+12:30 - 4:00
+- Summarising Data
+- Combining Data Sources
+- Building Patient Features
 
-## Counts
+4:00 - 4:30
+- Learning On Your Own
 
-Describe the overall size of the dataset and the relative ratio of positive/negative examples for each of the response variables.
+## Pre-Workshop Preparation
 
-# Models
+Before the workshop complete the following to make sure you have all the software you'll need installed and ready to go. If you need assistance, there will be a last-minute clinic 1/2 hour before the start of the workshop. See below for full instructions on each step.
 
-Clearly identify each of the response variables of interest.  Any additional desired analysis should also be described here.
+**Prep Steps**
 
-# Timeline
+- [ ] Install R
+- [ ] Install RStudio
+- [ ] Install and test packages 
 
-Outline the desired timeline of the project and any explicit deadlines.
+### Installing R
 
-# Project logistics
+Visit https://cran.rstudio.com/ and select "Download and R for [your OS]". Select the "Base" option on the download page.  Once the file is downloaded, install the software.   
 
-**Sprint planning**:  
-**Demo**:  
+Also download and install Rtools if you are on Windows--you will find the link below Base on the list.
 
-**Data location**:  
+### Installing RStudio
 
-**Slack channel**:  
-**Zoom link**:  
+Visit https://rstudio.com/products/rstudio/download/ and download the free version of RStudio for your operating system. 
 
-The following contact information should be completed for the desired participants:
+### Installing and Testing Packages
 
-Name  
-Physical Location  
-Email address  
-Phone number  
+Once R and RStudio are download, load RStudio, and copy-paste the following code in the console:
+
+```r
+install.packages("tidyverse")
+install.packages("janitor")
+install.packages("devtools")
+install.packages("assertr")
+install.packages("readxl")
+install.packages("glue")
+install.packages("knitr")
+```
