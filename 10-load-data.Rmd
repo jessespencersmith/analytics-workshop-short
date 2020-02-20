@@ -1,16 +1,68 @@
 ---
-title: "10-load-data"
-output: html_notebook
+title: "10-RedCap-pull"
+output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
-The purpose of this notebook is to load and clean the data.  It should also test the data (e.g., by assertr) to ensure that assumptions about the data are met, and store the cleaned and tested data.
+```{r Load Packages}
+if (!require("pacman")) {
+  install.packages("pacman")
+}
 
-```{r}
-#Import helpful packages
-library(haven)
-library(vroom)
-library(boxr)
-library(janitor)
-library(assertr)
+pacman::p_load(haven, assertr, tidyverse, kableExtra, caret, lubridate,
+               janitor, DataExplorer, jsonlite, forcats, redcapAPI, RCurl,
+               naniar, modelr, purrr, pillar, here)
+
+knitr::opts_chunk$set(include = FALSE, warning = FALSE, message = FALSE,
+                      echo = FALSE)
+
+here::here()
 ```
 
+```{r API call, eval = TRUE, include = FALSE, warning = FALSE, message = FALSE, echo = FALSE}
+# command line
+# rcon <- redcapConnection(
+#   url = "https://redcap.vanderbilt.edu/api/",
+#   token = commandArgs(trailingOnly = TRUE))
+
+# changing code here
+rcon <- redcapConnection(
+  url = "https://redcap.vanderbilt.edu/api/",
+  token = "")
+```
+
+## Load REDCap data
+
+- Establish connection to Jeff's "Spine ML Database" REDCap database, then pull data from it.
+
+```{r Load Redcap Data}
+report_patient_id_df <- exportReports(rcon, report_id = 164029) %>%
+  select(mrn, gender, race) %>%
+  mutate_all(type.convert) %>%
+  mutate(mrn = as.character(mrn))
+
+report_baseline_df <- exportReports(rcon, report_id = 164027) %>%
+  mutate_all(type.convert) %>%
+  mutate(mrn = as.character(mrn))
+
+  
+preop_lumbar_pros <- exportReports(rcon, report_id = 164031) %>%
+  mutate_all(type.convert) %>%
+  mutate(
+    mrn = as.character(mrn),
+    odi_date = mdy(odi_date),
+    eq5d_date = mdy(eq5d_date),
+    leg_pain_date = mdy(leg_pain_date),
+    back_pain_date = mdy(back_pain_date))
+  
+outcomes_1yr <- exportReports(rcon, report_id = 164032) %>%
+  mutate_all(type.convert) %>% 
+  mutate(
+    mrn = as.character(mrn),
+    odi_date = mdy(odi_date),
+    eq5d_date = mdy(eq5d_date),
+    back_pain_date = mdy(back_pain_date),
+    leg_pain_date = mdy(leg_pain_date))
+
+```
