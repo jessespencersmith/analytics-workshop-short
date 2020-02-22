@@ -1,0 +1,232 @@
+---
+title: "EHR-Data-Example"
+output: html_document
+---
+
+## Read in the data
+```{r}
+lumbar_full_df <- vroom()
+```
+
+## determine what variables are in the dataset
+```{r}
+lumbar_full_df %>% names()
+lumbar_full_df %>% glimpse()
+```
+
+## Data manipulation
+1. Drop all cpt codes
+2. Drop variables with missing values?
+```{r}
+# Get rid of cpt codes
+lumbar_no_cpt <- lumbar_full_df %>%
+  select(-contains("cpt"))
+
+# sanity check
+lumbar_no_cpt %>% glimpse()
+
+# drop missing values
+lumbar_no_cpt %>% 
+  drop_na()
+```
+
+What happened? We dropped all of our data! Let's dig a little deeper to see what went wrong
+
+```{r}
+library(DataExplorer)
+
+lumbar_no_cpt %>% plot_missing()
+```
+
+What variables are causing the most missingness? Let's only keep variables that only have less than 5% missingness. 
+
+```{r}
+lumbar_no_miss <- lumbar_no_cpt %>%
+  #This is a formula function
+  select_if( ~ pct_miss(.) < 5) %>% 
+  drop_na()
+
+# Investigate again
+lumbar_no_miss %>% glimpse()
+
+# What variables did we drop?
+setdiff(names(lumbar_no_cpt), names(lumbar_no_miss))
+```
+
+## Investigate our dataset again
+```{r}
+
+```
+
+## Select only variables we're interested in
+
+Variables:
+
+odi_percent_1yr
+gender
+race
+age
+diabetes
+smoker
+employment
+height
+weight
+median_household_income
+asthma
+
+```{r}
+
+variables_to_select <- c("odi_percent_1yr",
+                         "odi_percent_preop",
+                         "gender", 
+                         "race", 
+                         "age", 
+                         "diabetes",
+                         "smoker", 
+                         "employment", 
+                         "height", 
+                         "weight",
+                         "median_household_income",
+                         "asthma")
+
+lumbar_final <- lumbar_no_miss %>%
+  select(variables_to_select)
+```
+
+## Explore variables with Data Explorer
+
+```{r}
+# Boxplots
+lumbar_final %>% 
+  plot_boxplot(by = "odi_percent_1yr")
+
+# Barplots
+lumbar_final %>% 
+  plot_bar()
+```
+
+## Combine categories with variables that have few observations
+```{r}
+lumbar_final %>% tabyl(race)
+```
+
+```{r}
+lumbar_final %>% tabyl(employment)
+```
+
+
+# only keep 2 categories for race
+# only keep employment category if there's 200 people
+```{r}
+lumbar_final <- lumbar_final %>% 
+  mutate(race_lumped = fct_lump(race, n = 2),
+         employment_lumped = fct_lump_min(employment, min = 200))
+
+# Did it work?
+lumbar_final %>% tabyl(race_lumped)
+lumbar_final %>% tabyl(employment_lumped)
+```
+
+## Create change in ODI percent
+```{r}
+lumbar_final <- lumbar_final %>% 
+  mutate(odi_change = odi_percent_1yr - odi_percent_preop)
+
+lumbar_final %>% 
+  select(odi_change, everything()) %>% 
+  arrange(desc(odi_change))
+```
+
+## Do men who smoke have a bigger change in odi percent change than women who smoke?
+```{r}
+# By gender
+lumbar_final %>% 
+  group_by(gender) %>% 
+  summarise(avg_odi_change = mean(odi_change))
+
+# By gender and smoking status
+lumbar_final %>% 
+  group_by(gender, smoker) %>% 
+  summarise(avg_odi_change = mean(odi_change))
+
+# difference among smoking groups
+lumbar_final %>% 
+  group_by(smoker) %>% 
+  summarise(avg_odi_change = mean(odi_change))
+```
+
+
+## Graphically represent the spread of the change among men, women, and smokers
+```{r}
+# First pass
+lumbar_final %>% 
+  ggplot(aes(x = gender, 
+             y = odi_change, 
+             fill = smoker)) +
+  geom_boxplot()
+
+# What are the maximum and minimum values we need to be able to see?
+lumbar_final %>% 
+  summarise(max_change = max(odi_change),
+            min_change = min(odi_change))
+
+# Sort by odi_change, put it first in the data frame
+lumbar_final %>% 
+  arrange(desc(odi_change)) %>% 
+  select(odi_change, everything())
+
+# change the y-axis so we can see it
+lumbar_final %>% 
+  ggplot(aes(x = gender, y = odi_change, fill = smoker)) +
+  geom_boxplot() +
+  scale_y_continuous(breaks = seq(-100, 50, 10))
+```
+
+##What is the shape of the change in odi score
+
+```{r}
+# First pass
+lumbar_final %>% 
+  ggplot(aes(x = odi_change)) +
+  geom_histogram()
+
+# Change the number of bins
+lumbar_final %>% 
+  ggplot(aes(x = odi_change)) +
+  geom_histogram(bins = 100)
+```
+
+##More Advanced Usage
+
+The smoker variable has three levels: "previously smoker", "yes current", "no". Let's change that. When it's the case that 
+```{r}
+lumbar_final <- lumbar_final %>%
+  mutate(new_smoker = case_when(
+    smoker == "previously smoker" ~ "previous",
+    smoker == "yes current" ~ "current",
+    smoker == "no" ~ "no"
+  )) %>% 
+  select(new_smoker)
+```
+
+## Get the mean of every column that is numeric
+```{r}
+lumbar_final %>% 
+  summarise_if(is.double, mean)
+```
+
+## Graph
+```{r}
+# Not helpful
+lumbar_final %>% 
+  ggplot() +
+  geom_point(aes(x = odi_percent_preop, y = odi_percent_1yr, color = employment))
+
+# better
+lumbar_final %>% 
+  ggplot() +
+  geom_point(aes(x = odi_percent_preop, y = odi_percent_1yr)) +
+  geom_abline(color = "blue") +
+  facet_wrap( ~ employment)
+```
+
