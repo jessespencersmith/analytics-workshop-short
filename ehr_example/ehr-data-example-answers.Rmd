@@ -61,12 +61,6 @@ https://cran.r-project.org/web/packages/assertr/vignettes/assertr.html
 lumbar_age_weight_height %>% select(fake_id, everything())
 ```
 
-```{r}
-
-<- 
-```
-
-
 ##Join the two datasets together so that only rows in both data frames are kept
 ```{r join the datasets first pass}
 # Only join the two datasets that have a matching fake_id value in both
