@@ -342,9 +342,10 @@ lumbar_final %>%
 ##Faster way to do this if we want all combinations?
 Absolutely
 ```{r}
-lumbar_final %>%
-  mutate(smoker_diabetes = interaction(smoker, diabetes)) %>% 
-  select(smoker_diabetes)
+lumbar_final <- lumbar_final %>%
+  mutate(smoker_diabetes = interaction(smoker, diabetes))
+
+lumbar_final %>% select(smoker_diabetes)
 ```
 ##How about a 3-way interaction between smoker, diabetes, and race?
 ```{r}
@@ -362,12 +363,12 @@ lumbar_final %>%
   summarise_if(is.double, mean)
 ```
 
-## Graphically, represent how preoperative and postoperative odi scores relate to unemployment
+## Graphically, represent how preoperative and postoperative odi scores relate to smoking status and diabetes
 ```{r}
 # Not helpful
 lumbar_final %>% 
   ggplot() +
-  geom_point(aes(x = odi_percent_preop, y = odi_percent_1yr, color = employment))
+  geom_point(aes(x = odi_percent_preop, y = odi_percent_1yr, color = smoker_diabetes))
 ```
 
 #Second attempt at above graph
@@ -377,6 +378,6 @@ lumbar_final %>%
   ggplot() +
   geom_point(aes(x = odi_percent_preop, y = odi_percent_1yr)) +
   geom_abline(color = "blue") +
-  facet_wrap( ~ employment)
+  facet_wrap( ~ smoker_diabetes)
 ```
 
