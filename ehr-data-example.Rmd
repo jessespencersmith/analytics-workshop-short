@@ -3,14 +3,96 @@ title: "EHR-Data-Example"
 output: html_document
 ---
 
-## Read in the data
+##Load libraries we need
 ```{r}
-lumbar_full_df <- vroom()
+library(readr)
+library(tidyverse)
 ```
 
-## determine what variables are in the dataset
+
+## Read in the data
+```{r read in main data set}
+# Read in full dataset
+lumbar_df <- read_csv("~/Desktop/lumbar_full_df.csv")
+
+lumbar_df
+```
+
+##Check format of fake_id variable
 ```{r}
+lumbar_df %>% select(fake_id)
+```
+
+
+## Make sure id column is in correct format
+```{r}
+lumbar_df_correct_id <- lumbar_df %>% mutate(fake_id = as.character(fake_id))
+
+lumbar_df_correct_id %>% select(fake_id)
+```
+
+
+```{r read in additional demographic data}
+
+# Read in the demographic data
+lumbar_age_weight_height <- read_csv("~/Desktop/lumbar_age_weight_height.csv", 
+    col_types = cols(fake_id = col_character()))
+
+# Look at data
+lumbar_age_weight_height
+```
+
+##Rearrange columns so id is first
+```{r}
+lumbar_age_weight_height %>% select(fake_id, everything())
+```
+
+
+##Join the two datasets together
+```{r}
+# Only join the two datasets that have a matching fake_id value in both
+inner_join(lumbar_df_correct_id, lumbar_age_weight_height, by = "fake_id")
+
+```
+
+Who did we drop? Let's investigate further.
+```{r}
+# Who did we drop?
+anti_join(lumbar_df_correct_id, lumbar_age_weight_height, by = "fake_id") %>% select(fake_id)
+```
+##Fix the broken ids
+```{r}
+lumbar_df_new_id <- lumbar_df_correct_id %>%
+  mutate(new_id = str_replace(fake_id, "000", ""))
+
+# Did it work?
+lumbar_df_new_id %>%
+  select(new_id, fake_id) %>% 
+  filter(fake_id == "101000")
+```
+
+##Join the datasets together
+```{r}
+# Throws an error
+inner_join(lumbar_df_new_id, lumbar_age_weight_height, by = "new_id")
+```
+
+Tell the join what variables are the same
+```{r}
+# join the datasets together
+lumbar_full_df <- inner_join(lumbar_df_new_id, lumbar_age_weight_height, by = c("new_id" = "fake_id"))
+```
+
+
+## Determine what variables are in the dataset
+```{r}
+# Look at names
 lumbar_full_df %>% names()
+```
+
+Better way to look at variables
+```{r}
+# Better way to look at the names
 lumbar_full_df %>% glimpse()
 ```
 
@@ -22,16 +104,18 @@ lumbar_full_df %>% glimpse()
 lumbar_no_cpt <- lumbar_full_df %>%
   select(-contains("cpt"))
 
-# sanity check
+# Did it work?
 lumbar_no_cpt %>% glimpse()
-
-# drop missing values
-lumbar_no_cpt %>% 
-  drop_na()
 ```
 
-What happened? We dropped all of our data! Let's dig a little deeper to see what went wrong
+# drop missing values
+```{r}
+lumbar_no_cpt %>% drop_na()
+```
 
+What happened? 
+
+##Explore missing with data explorer
 ```{r}
 library(DataExplorer)
 
@@ -41,6 +125,9 @@ lumbar_no_cpt %>% plot_missing()
 What variables are causing the most missingness? Let's only keep variables that only have less than 5% missingness. 
 
 ```{r}
+# Useful for dealing with missing values
+library(naniar)
+
 lumbar_no_miss <- lumbar_no_cpt %>%
   #This is a formula function
   select_if( ~ pct_miss(.) < 5) %>% 
@@ -48,14 +135,12 @@ lumbar_no_miss <- lumbar_no_cpt %>%
 
 # Investigate again
 lumbar_no_miss %>% glimpse()
-
-# What variables did we drop?
-setdiff(names(lumbar_no_cpt), names(lumbar_no_miss))
 ```
 
-## Investigate our dataset again
+##What variables did we just drop
 ```{r}
-
+# What variables did we drop?
+setdiff(names(lumbar_no_cpt), names(lumbar_no_miss))
 ```
 
 ## Select only variables we're interested in
@@ -99,31 +184,40 @@ lumbar_final <- lumbar_no_miss %>%
 # Boxplots
 lumbar_final %>% 
   plot_boxplot(by = "odi_percent_1yr")
+```
 
+```{r}
 # Barplots
 lumbar_final %>% 
   plot_bar()
 ```
 
-## Combine categories with variables that have few observations
+## How many observations do we have in race and employment?
 ```{r}
+library(janitor)
+
+# table
 lumbar_final %>% tabyl(race)
 ```
+# only keep 2 categories for race
+```{r}
+lumbar_final <- lumbar_final %>% 
+  mutate(race_lumped = fct_lump(race, n = 2))
 
+lumbar_final %>% tabyl(race_lumped)
+```
+
+## Check employment variable
 ```{r}
 lumbar_final %>% tabyl(employment)
 ```
 
-
-# only keep 2 categories for race
-# only keep employment category if there's 200 people
+## Only keep if there are at least 200 observationsin the category
 ```{r}
 lumbar_final <- lumbar_final %>% 
-  mutate(race_lumped = fct_lump(race, n = 2),
-         employment_lumped = fct_lump_min(employment, min = 200))
+  mutate(employment_lumped = fct_lump_min(employment, min = 200))
 
 # Did it work?
-lumbar_final %>% tabyl(race_lumped)
 lumbar_final %>% tabyl(employment_lumped)
 ```
 
@@ -132,26 +226,34 @@ lumbar_final %>% tabyl(employment_lumped)
 lumbar_final <- lumbar_final %>% 
   mutate(odi_change = odi_percent_1yr - odi_percent_preop)
 
+# Check that it worked
 lumbar_final %>% 
   select(odi_change, everything()) %>% 
   arrange(desc(odi_change))
 ```
 
-## Do men who smoke have a bigger change in odi percent change than women who smoke?
+##Does smoking have an affect, on average, for change in ODI score?
+```{r}
+# difference among smoking groups
+lumbar_final %>% 
+  group_by(smoker) %>% 
+  summarise(avg_odi_change = mean(odi_change))
+```
+
+
+## Do men or women who smoke have a larger change in ODI score, on average? 
 ```{r}
 # By gender
 lumbar_final %>% 
   group_by(gender) %>% 
   summarise(avg_odi_change = mean(odi_change))
+```
 
+##Within men and women, are there differences (on average) between different smoking groups?
+```{r}
 # By gender and smoking status
 lumbar_final %>% 
   group_by(gender, smoker) %>% 
-  summarise(avg_odi_change = mean(odi_change))
-
-# difference among smoking groups
-lumbar_final %>% 
-  group_by(smoker) %>% 
   summarise(avg_odi_change = mean(odi_change))
 ```
 
@@ -164,22 +266,24 @@ lumbar_final %>%
              y = odi_change, 
              fill = smoker)) +
   geom_boxplot()
+```
 
+##What values do we need to be able to visualize on the y-axis?
+```{r}
 # What are the maximum and minimum values we need to be able to see?
 lumbar_final %>% 
   summarise(max_change = max(odi_change),
             min_change = min(odi_change))
 
-# Sort by odi_change, put it first in the data frame
-lumbar_final %>% 
-  arrange(desc(odi_change)) %>% 
-  select(odi_change, everything())
+```
 
+##Remake the graph
+```{r}
 # change the y-axis so we can see it
 lumbar_final %>% 
   ggplot(aes(x = gender, y = odi_change, fill = smoker)) +
   geom_boxplot() +
-  scale_y_continuous(breaks = seq(-100, 50, 10))
+  scale_y_continuous(breaks = seq(-110, 110, 10))
 ```
 
 ##What is the shape of the change in odi score
@@ -189,25 +293,60 @@ lumbar_final %>%
 lumbar_final %>% 
   ggplot(aes(x = odi_change)) +
   geom_histogram()
+```
+##Do we actually have data at all of those values? Is the default bin size meaningful?
+Let's remake the graph increasing the number of bins. But how many should we choose?
+```{r}
+# determine the number of unique values for odi_change
+lumbar_final %>% 
+  pull(odi_change) %>% 
+  n_distinct()
+```
 
+##Remake our histogram
+```{r}
 # Change the number of bins
 lumbar_final %>% 
   ggplot(aes(x = odi_change)) +
-  geom_histogram(bins = 100)
+  geom_histogram(bins = 133) +
+  scale_x_continuous(breaks = seq(-100, 60, 10))
 ```
 
-##More Advanced Usage
 
-The smoker variable has three levels: "previously smoker", "yes current", "no". Let's change that. When it's the case that 
+##Create a new variable based on both smoking status and diabetes 
 ```{r}
-lumbar_final <- lumbar_final %>%
-  mutate(new_smoker = case_when(
-    smoker == "previously smoker" ~ "previous",
-    smoker == "yes current" ~ "current",
-    smoker == "no" ~ "no"
+lumbar_final %>%
+  mutate(smoker_diabetes = case_when(
+    smoker == "previously smoker" & diabetes == "yes" ~ "previous_yes",
+    smoker == "yes current" & diabetes == "yes" ~ "current_yes",
+    smoker == "no" & diabetes == "yes" ~ "no_yes",
+    smoker == "no" & diabetes == "no" ~ "no_no"
   )) %>% 
-  select(new_smoker)
+  select(smoker_diabetes)
 ```
+
+##Why NA values?
+Didn't specify all categories before
+```{r}
+lumbar_final %>%
+  mutate(smoker_diabetes = case_when(
+    smoker == "previously smoker" & diabetes == "yes" ~ "previous_yes",
+    smoker == "yes current" & diabetes == "yes" ~ "current_yes",
+    smoker == "no" & diabetes == "yes" ~ "no_yes",
+    smoker == "no" & diabetes == "no" ~ "no_no",
+    TRUE ~ "dont_care"
+  )) %>% 
+  select(smoker_diabetes)
+```
+
+##Faster way to do this if we want all combinations?
+Absolutely
+```{r}
+lumbar_final %>%
+  mutate(smoker_diabetes = interaction(smoker, diabetes)) %>% 
+  select(smoker_diabetes)
+```
+
 
 ## Get the mean of every column that is numeric
 ```{r}
@@ -215,13 +354,16 @@ lumbar_final %>%
   summarise_if(is.double, mean)
 ```
 
-## Graph
+## Graphically, represent how preoperative and postoperative odi scores relate to unemployment
 ```{r}
 # Not helpful
 lumbar_final %>% 
   ggplot() +
   geom_point(aes(x = odi_percent_preop, y = odi_percent_1yr, color = employment))
+```
 
+#Second attempt at above graph
+```{r}
 # better
 lumbar_final %>% 
   ggplot() +
