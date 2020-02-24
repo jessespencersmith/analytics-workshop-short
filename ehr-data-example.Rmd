@@ -346,6 +346,14 @@ lumbar_final %>%
   mutate(smoker_diabetes = interaction(smoker, diabetes)) %>% 
   select(smoker_diabetes)
 ```
+##How about a 3-way interaction between smoker, diabetes, and race?
+```{r}
+# Create 3-way interaction among race, diabetes, and smoker
+lumbar_final %>% 
+  mutate(smoker_diabetes_race = interaction(smoker, diabetes, race)) %>% 
+  pull(smoker_diabetes_race) %>% 
+  unique()
+```
 
 
 ## Get the mean of every column that is numeric
