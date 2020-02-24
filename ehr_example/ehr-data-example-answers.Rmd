@@ -53,9 +53,17 @@ lumbar_age_weight_height <- read_csv("~/Desktop/lumbar_age_weight_height.csv",
 lumbar_age_weight_height
 ```
 
+Vignette for assert and verify statements:
+https://cran.r-project.org/web/packages/assertr/vignettes/assertr.html
+
 ##Rearrange columns so id is first
 ```{r rearrange columns for demographics}
 lumbar_age_weight_height %>% select(fake_id, everything())
+```
+
+```{r}
+
+<- 
 ```
 
 
