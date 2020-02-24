@@ -16,16 +16,21 @@ We'll cover the basics necessary for a reproducible and efficient analytics work
 - Writing Notebooks
 
 10:00 - 12:00
-- Validating Data
-- Exploring Data
-- Building Cohorts
-
-12:30 - 4:00
+Grammar of Data Manipulation
+- Transforming Data
 - Summarising Data
-- Combining Data Sources
+- Joining Data
+
+12:30 - 1:30
+Grammar of Graphics
+- Visualizing Data
+
+1:30 - 3:30
+Patient Research
+- Building Cohorts
 - Building Patient Features
 
-4:00 - 4:30
+3:30 - 4:00
 - Learning On Your Own
 
 ## Pre-Workshop Preparation
