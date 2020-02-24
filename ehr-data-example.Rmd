@@ -7,13 +7,15 @@ output: html_document
 ```{r}
 library(readr)
 library(tidyverse)
+library(assertr)
 ```
 
 
 ## Read in the data
 ```{r read in main data set}
 # Read in full dataset
-lumbar_df <- read_csv("~/Desktop/lumbar_full_df.csv")
+lumbar_df <- read_csv("~/Desktop/lumbar_full_df.csv") %>% 
+  verify(has_all_names("fake_id", "odi_percent_1yr"))
 
 lumbar_df
 ```
@@ -36,7 +38,8 @@ lumbar_df_correct_id %>% select(fake_id)
 
 # Read in the demographic data
 lumbar_age_weight_height <- read_csv("~/Desktop/lumbar_age_weight_height.csv", 
-    col_types = cols(fake_id = col_character()))
+    col_types = cols(fake_id = col_character())) %>% 
+  verify(has_all_names("fake_id"))
 
 # Look at data
 lumbar_age_weight_height
