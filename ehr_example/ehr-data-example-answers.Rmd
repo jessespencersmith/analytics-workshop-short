@@ -15,7 +15,10 @@ library(assertr)
 ```{r read in main data set}
 # Read in full dataset
 lumbar_df <- read_csv("~/Desktop/lumbar_full_df.csv") %>% 
-  verify(has_all_names("fake_id", "odi_percent_1yr"))
+  verify(has_all_names("fake_id", "odi_percent_1yr")) %>% 
+  assert(is_uniq("fake_id")) %>% 
+  assert(not_na, fake_id) %>% 
+  assert(within_bounds(-10, 100), odi_q1_1yr)
 
 # Look at the data
 lumbar_df
@@ -40,8 +43,11 @@ lumbar_df_correct_id %>% select(fake_id)
 
 # Read in the demographic data
 lumbar_age_weight_height <- read_csv("~/Desktop/lumbar_age_weight_height.csv", 
-    col_types = cols(fake_id = col_character())) %>% 
-  verify(has_all_names("fake_id"))
+  col_types = cols(fake_id = col_character())) %>%
+  verify(has_all_names("fake_id")) %>% 
+  assert(is_uniq("fake_id")) %>% 
+  assert(not_na, fake_id)
+
 
 # Look at data
 lumbar_age_weight_height

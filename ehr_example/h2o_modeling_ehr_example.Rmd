@@ -15,11 +15,16 @@ library(rsample)
 #Read in data
 ```{r read in the data}
 lumbar_df <- read_csv("~/Desktop/lumbar_full_df.csv") %>% 
-  verify(has_all_names("fake_id", "odi_percent_1yr"))
+  verify(has_all_names("fake_id", "odi_percent_1yr")) %>% 
+  assert(is_uniq("fake_id")) %>% 
+  assert(not_na, fake_id) %>% 
+  assert(within_bounds(-10, 100), odi_q1_1yr)
 
 lumbar_age_weight_height <- read_csv("~/Desktop/lumbar_age_weight_height.csv", 
     col_types = cols(fake_id = col_character())) %>% 
-  verify(has_all_names("fake_id"))
+  verify(has_all_names("fake_id")) %>% 
+  assert(is_uniq("fake_id")) %>% 
+  assert(not_na, fake_id)
 
 # deal with problems
 lumbar_df_new_id <- lumbar_df %>%
@@ -81,5 +86,25 @@ gbm_odi <- h2o.gbm(
 
 ```{r}
 h2o.varimp_plot(gbm_odi, num_of_features = 5)
+```
+
+##Red cap pull
+```{r}
+library(redcapAPI)
+# changing code here
+rcon <- redcapConnection(
+  url = "https://redcap.vanderbilt.edu/api/",
+  token = "0BD69368A4205525F270847A68578180")
+```
+
+```{r}
+report_patient_id_df <- exportReports(rcon, report_id = 164029) %>%
+  select(mrn, gender, race) %>%
+  mutate_all(type.convert) %>%
+  mutate(mrn = as.character(mrn))
+
+report_baseline_df <- exportReports(rcon, report_id = 164027) %>%
+  mutate_all(type.convert) %>%
+  mutate(mrn = as.character(mrn))
 ```
 
