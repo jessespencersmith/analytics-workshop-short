@@ -22,7 +22,7 @@ lumbar_age_weight_height <- read_csv("~/Desktop/lumbar_age_weight_height.csv",
   verify(has_all_names("fake_id"))
 
 # deal with problems
-lumbar_df_new_id <- lumbar_df_correct_id %>%
+lumbar_df_new_id <- lumbar_df %>%
   mutate(new_id = str_replace(fake_id, "000", ""))
 ```
 
@@ -53,7 +53,7 @@ variables_to_select <- c("odi_percent_1yr",
                          "asthma")
 
 # Create new data set with just the variables we want
-lumbar_final <- lumbar_no_miss %>%
+lumbar_final <- lumbar_final %>%
   select(variables_to_select)
 ```
 
