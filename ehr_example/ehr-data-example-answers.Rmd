@@ -65,7 +65,6 @@ lumbar_age_weight_height %>% select(fake_id, everything())
 ```{r join the datasets first pass}
 # Only join the two datasets that have a matching fake_id value in both
 inner_join(lumbar_df_correct_id, lumbar_age_weight_height, by = "fake_id")
-
 ```
 
 Who did we drop? Let's investigate further.
@@ -125,6 +124,12 @@ lumbar_no_cpt %>% glimpse()
 ```{r drop missing observations from data}
 lumbar_no_cpt %>% drop_na()
 ```
+
+## Look at what variables are missing
+```{r}
+lumbar_no_cpt %>% summarise_all(~ sum(is.na(.))) %>% glimpse()
+```
+
 
 What happened? 
 
@@ -397,4 +402,5 @@ lumbar_final %>%
   geom_abline(color = "blue") +
   facet_wrap( ~ smoker_diabetes)
 ```
+
 
