@@ -1,0 +1,332 @@
+---
+title: "EHR-Data-Example"
+output: html_document
+---
+
+##Load libraries we need
+```{r}
+# install.packages("readr")
+# install.packages("tidyverse")
+# install.packages("assertr")
+
+library(readr)
+library(tidyverse)
+library(assertr)
+```
+
+
+## Read in the data and verify the data has the variables we know must be there (odi_percent_1yr and....)
+```{r read in main data set}
+# Read in full dataset
+lumbar_df <- 
+
+# Look at the data
+
+```
+
+##Check format of fake_id variable
+```{r}
+
+```
+
+
+## Make sure id column is in correct format
+```{r}
+lumbar_df_correct_id <- 
+
+# Check that it worked
+```
+
+##Read in demographic data and verify it has required variables
+```{r read in additional demographic data}
+
+# Read in the demographic data
+lumbar_age_weight_height <- 
+
+# Look at data
+
+```
+
+##Rearrange columns so id is first
+```{r}
+
+```
+
+
+##Join the two datasets together so that only rows in both data frames are kept
+```{r}
+# Only join the two datasets that have a matching fake_id value in both
+
+```
+
+Who did we drop? Let's investigate further.
+```{r}
+# Who did we drop?
+
+```
+
+##Fix the broken ids
+```{r}
+lumbar_df_new_id <- 
+
+# Did it work?
+
+```
+
+##Join the datasets together, but what key do we use?
+```{r}
+# Throws an error
+inner_join(lumbar_df_new_id, lumbar_age_weight_height, by = "?????")
+```
+
+Tell the join what variables are the same
+```{r}
+# join the datasets together
+lumbar_full_df <- inner_join(lumbar_df_new_id, lumbar_age_weight_height, by = "??????")
+```
+
+## Determine what variables are in the dataset
+```{r}
+# Look at names
+
+```
+
+Better way to look at variables
+```{r}
+# Better way to look at the names
+
+```
+
+## Data manipulation
+1. Drop all cpt codes
+2. Drop variables with missing values?
+```{r}
+# Get rid of cpt codes
+lumbar_no_cpt <- 
+
+# Did it work?
+
+```
+
+# drop all missing values from our new dataset
+```{r}
+lumbar_no_cpt %>% drop_na()
+```
+
+What happened? 
+
+##Explore missing with data explorer
+```{r}
+# install.packages("DataExplorer")
+library(DataExplorer)
+
+```
+
+What variables are causing the most missingness? Let's only keep variables that only have less than 5% missingness. 
+
+```{r}
+# Useful for dealing with missing values
+# install.packages("naniar")
+library(naniar)
+
+lumbar_no_miss <- 
+
+# Investigate again
+
+```
+
+##What variables did we just drop
+```{r}
+# What variables did we drop?
+setdiff(names(lumbar_no_cpt), names(lumbar_no_miss))
+```
+
+## Select only variables we're interested in
+
+Variables:
+
+odi_percent_1yr
+gender
+race
+age
+diabetes
+smoker
+employment
+height
+weight
+median_household_income
+asthma
+
+```{r}
+# Variables we want to select
+variables_to_select <- c("odi_percent_1yr",
+                         "odi_percent_preop",
+                         "gender", 
+                         "race", 
+                         "age", 
+                         "diabetes",
+                         "smoker", 
+                         "employment", 
+                         "height", 
+                         "weight",
+                         "median_household_income",
+                         "asthma")
+
+# Create new data set with just the variables we want
+lumbar_final <- 
+```
+
+## Explore variables with Data Explorer: Boxplots (outcome we care about is odi_percent_1yr)
+
+```{r}
+# Boxplots
+
+```
+
+## Explore variables with Data Explorer: Barplots
+```{r}
+# Barplots
+
+```
+
+## How many observations do we have in race and employment? (Make a table)
+```{r}
+# install.packages("janitor")
+library(janitor)
+
+# table for race
+
+```
+
+# Only keep 2 categories for race and create another table to ensure it worked
+```{r}
+lumbar_final <- 
+
+
+```
+
+## Check employment variable (make table)
+```{r}
+
+```
+
+## Only keep if there are at least 200 observationsin the category for employment
+```{r}
+lumbar_final <- 
+
+# Did it work?
+lumbar_final %>% tabyl(employment_lumped)
+```
+
+## Create change in ODI percent (name it odi_change) and view it in descending order 
+```{r}
+lumbar_final <- 
+
+# Check that it worked and vriew in descending order
+
+```
+
+##Does smoking have an affect, on average, for change in ODI score?
+```{r}
+# difference among smoking groups
+
+```
+
+
+## Do men or women who smoke have a larger change in ODI score, on average? 
+```{r}
+# By gender
+
+```
+
+##Within men and women, are there differences (on average) between different smoking groups?
+```{r}
+# By gender and smoking status
+
+```
+
+
+## Graphically represent the spread of the change among men, women, and smokers
+```{r}
+# First pass
+
+```
+
+##What values do we need to be able to visualize on the y-axis?
+```{r}
+# What are the maximum and minimum values we need to be able to see?
+
+```
+
+##Remake the graph
+```{r}
+# change the y-axis so we can see it
+
+```
+
+##What is the shape of the change in odi score
+
+```{r}
+# First pass
+
+```
+
+##Do we actually have data at all of those values? Is the default bin size meaningful?
+Let's remake the graph increasing the number of bins. But how many should we choose?
+```{r}
+# determine the number of unique values for odi_change
+
+```
+
+##Remake our histogram
+```{r}
+# Change the number of bins
+
+```
+
+
+##Create a new variable based on both smoking status and diabetes. 
+If people were previous smokers and had diabetes call it "previous_yes"
+If people are current smokers and have diabetes call it "current_yes"
+If people do not smoke and have diabetes call it "no_yes"
+If people do not smoke and do not have diabetes call it "no_no"
+```{r}
+
+```
+
+##Why NA values?
+Now do the same as above, but for any category we didn't include, create a value that is "dont_care"
+```{r}
+
+```
+
+##Faster way to do this if we want all combinations?
+
+```{r}
+lumbar_final <- 
+
+
+```
+
+##How about a 3-way interaction between smoker, diabetes, and race?
+```{r}
+# Create 3-way interaction among race, diabetes, and smoker and look at all unique values
+
+```
+
+
+## Get the mean of every column that is numeric data
+```{r}
+
+```
+
+## Graphically, represent how preoperative and postoperative odi scores relate to smoking status and diabetes
+```{r}
+
+```
+
+#Second attempt at above graph
+```{r}
+
+```
+

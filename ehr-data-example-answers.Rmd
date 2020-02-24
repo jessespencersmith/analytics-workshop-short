@@ -1,5 +1,5 @@
 ---
-title: "EHR-Data-Example"
+title: "EHR-Data-Example-Answers"
 output: html_document
 ---
 
@@ -11,7 +11,7 @@ library(assertr)
 ```
 
 
-## Read in the data
+## Read in the data and verify it has fake_id and odi_percent_1yr
 ```{r read in main data set}
 # Read in full dataset
 lumbar_df <- read_csv("~/Desktop/lumbar_full_df.csv") %>% 
@@ -31,10 +31,11 @@ lumbar_df %>% select(fake_id)
 ```{r}
 lumbar_df_correct_id <- lumbar_df %>% mutate(fake_id = as.character(fake_id))
 
+# Check that it worked
 lumbar_df_correct_id %>% select(fake_id)
 ```
 
-
+##Read in demographic data
 ```{r read in additional demographic data}
 
 # Read in the demographic data
@@ -52,7 +53,7 @@ lumbar_age_weight_height %>% select(fake_id, everything())
 ```
 
 
-##Join the two datasets together
+##Join the two datasets together so that only rows in both data frames are kept
 ```{r}
 # Only join the two datasets that have a matching fake_id value in both
 inner_join(lumbar_df_correct_id, lumbar_age_weight_height, by = "fake_id")
@@ -112,7 +113,7 @@ lumbar_no_cpt <- lumbar_full_df %>%
 lumbar_no_cpt %>% glimpse()
 ```
 
-# drop missing values
+## drop all missing values from our new dataset
 ```{r}
 lumbar_no_cpt %>% drop_na()
 ```
@@ -183,7 +184,7 @@ lumbar_final <- lumbar_no_miss %>%
   select(variables_to_select)
 ```
 
-## Explore variables with Data Explorer
+## Explore variables with Data Explorer: Boxplots
 
 ```{r}
 # Boxplots
@@ -191,20 +192,23 @@ lumbar_final %>%
   plot_boxplot(by = "odi_percent_1yr")
 ```
 
+## Explore variables with Data Explorer: Boxplots (outcome we care about is odi_percent_1yr)
+
 ```{r}
 # Barplots
 lumbar_final %>% 
   plot_bar()
 ```
 
-## How many observations do we have in race and employment?
+## How many observations do we have in race and employment? (Make a table)
 ```{r}
 library(janitor)
 
 # table
 lumbar_final %>% tabyl(race)
 ```
-# only keep 2 categories for race
+
+# Only keep 2 categories for race and create another table to ensure it worked
 ```{r}
 lumbar_final <- lumbar_final %>% 
   mutate(race_lumped = fct_lump(race, n = 2))
@@ -217,7 +221,7 @@ lumbar_final %>% tabyl(race_lumped)
 lumbar_final %>% tabyl(employment)
 ```
 
-## Only keep if there are at least 200 observationsin the category
+## Only keep if there are at least 200 observationsin the category for employment
 ```{r}
 lumbar_final <- lumbar_final %>% 
   mutate(employment_lumped = fct_lump_min(employment, min = 200))
@@ -365,7 +369,7 @@ lumbar_final %>%
 ## Get the mean of every column that is numeric
 ```{r}
 lumbar_final %>% 
-  summarise_if(is.double, mean)
+  summarise_if(is.numeric, mean)
 ```
 
 ## Graphically, represent how preoperative and postoperative odi scores relate to smoking status and diabetes
