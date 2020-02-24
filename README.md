@@ -1,11 +1,11 @@
 # ehr-analytics-workshop
-Analytics Intensive Workshop in R using EHR (redcap) data.
+## Analytics Intensive Workshop in R with Applications to EHR data
 
 This workshop assumes a no familiarity with programming, but some experience or need of analytical tools. If you have experience with programming in Python, or in base R, this workshop will still be worthwhile.
 
 We'll cover the basics necessary for a reproducible and efficient analytics workflow. By the end of workshop, you'll have been introduced to functional programming, best practices for creatiing reproducible and understandable analytics.
 
-## Workshop Outline
+## EHR Analytics Workshop Outline
 
 9 - 9:15
 - Introductions, Discussion, and Example
