@@ -17,6 +17,7 @@ library(assertr)
 lumbar_df <- read_csv("~/Desktop/lumbar_full_df.csv") %>% 
   verify(has_all_names("fake_id", "odi_percent_1yr"))
 
+# Look at the data
 lumbar_df
 ```
 
@@ -163,7 +164,7 @@ median_household_income
 asthma
 
 ```{r}
-
+# Variables we want to select
 variables_to_select <- c("odi_percent_1yr",
                          "odi_percent_preop",
                          "gender", 
@@ -177,6 +178,7 @@ variables_to_select <- c("odi_percent_1yr",
                          "median_household_income",
                          "asthma")
 
+# Create new data set with just the variables we want
 lumbar_final <- lumbar_no_miss %>%
   select(variables_to_select)
 ```
@@ -224,7 +226,7 @@ lumbar_final <- lumbar_final %>%
 lumbar_final %>% tabyl(employment_lumped)
 ```
 
-## Create change in ODI percent
+## Create change in ODI percent and view it in descending order
 ```{r}
 lumbar_final <- lumbar_final %>% 
   mutate(odi_change = odi_percent_1yr - odi_percent_preop)
@@ -302,7 +304,7 @@ Let's remake the graph increasing the number of bins. But how many should we cho
 ```{r}
 # determine the number of unique values for odi_change
 lumbar_final %>% 
-  pull(odi_change) %>% 
+  select(odi_change) %>% 
   n_distinct()
 ```
 
